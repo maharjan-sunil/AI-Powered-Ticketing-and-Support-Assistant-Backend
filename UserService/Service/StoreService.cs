@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
+using UserService.API.Security;
 
 namespace DockerDemo.Docker.Service
 {
@@ -12,16 +13,23 @@ namespace DockerDemo.Docker.Service
     {
 
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<StoreService> _logger;
+      //  private readonly AzureKey _key;
 
-        public StoreService(ApplicationDbContext context)
+        public StoreService(ApplicationDbContext context, ILogger<StoreService> logger)
         {
             _context = context;
+        //    _key = key;
+            _logger = logger;
         }
 
         public async Task AddStore(Store store)
         {
-            _context.Stores.Add(store);
-            await _context.SaveChangesAsync();
+                //   string encyrpted = await _key.Encrypt(store.Location);
+                //string decyrpted = await _key.Decrypt(encyrpted);
+                store.Location = store.Location;
+                _context.Stores.Add(store);
+                await _context.SaveChangesAsync();
         }
 
         public async Task DeleteStore(int id)
