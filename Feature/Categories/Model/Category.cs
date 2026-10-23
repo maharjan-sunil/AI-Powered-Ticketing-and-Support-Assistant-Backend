@@ -1,0 +1,17 @@
+﻿using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
+
+namespace AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Model
+{
+    public class Category
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; } = true;
+
+        public ICollection<Ticket> Tickets { get; set; }
+            = new List<Ticket>();
+    }
+}

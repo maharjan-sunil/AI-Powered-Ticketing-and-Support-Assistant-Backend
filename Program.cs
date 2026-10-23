@@ -1,10 +1,10 @@
-using DockerDemo.Data;
+using AI_Powered_Ticketing_and_Support_System.Data;
 using DockerDemo.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using UserService.API.RabbitMQ;
+//using UserService.API.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,7 +102,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddApplicationServices();
 
 //Consumer for Rabbit MQ
-builder.Services.AddHostedService<StoreConsumer>();
+//builder.Services.AddHostedService<StoreConsumer>();
 
 var app = builder.Build();
 
