@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using DockerDemo.Docker.Service;
-using DockerDemo.Docker.Interface;
+using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
+using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service;
+using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Interface;
+using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Service;
+using AI_Powered_Ticketing_and_Support_System.Feature.CommentService.Interface;
+using AI_Powered_Ticketing_and_Support_System.Feature.CommentService.Service;
 
 namespace DockerDemo.DependencyInjection
 {
@@ -8,7 +12,10 @@ namespace DockerDemo.DependencyInjection
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IStoreService, StoreService>();
+            services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICommentService, CommentService>();
+
             return services;
 
         }

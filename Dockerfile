@@ -17,5 +17,5 @@ COPY --from=build /app/out .
 
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "UserService.API.dll"]
+ENTRYPOINT ["dotnet", "AI Powered Ticketing and Support System - Backend.dll"]
 # the container port can be same but the host should have different port
