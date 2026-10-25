@@ -1,6 +1,10 @@
-﻿using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
+﻿using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Model;
+using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
 using AI_Powered_Ticketing_and_Support_System.Feature.UserService.Model;
+using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Base;
+using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Tickets.DTO;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +18,16 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class TicketController : ControllerBase
+    public class TicketController : ApiBaseController
     {
 
         private readonly ITicketService  _service;
-        public TicketController(ITicketService service) => _service = service;
+        private readonly IValidator<CreateTicketRequest> _validator;
+
+        public TicketController(ITicketService service, IValidator<CreateTicketRequest> validator) { 
+            _validator = validator;
+            _service = service;
+        }
 
         [HttpGet]
         public  async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
@@ -29,10 +38,18 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
        
         [HttpPost]
         //[Authorize]
-        public async Task<IActionResult> AddTicket(Ticket ticket)
+        public async Task<IActionResult> AddTicket([FromBody] CreateTicketRequest request)
         {
-            // 1. Save as Pending (simulate DB)
-            ticket.Status = TicketStatus.Open;
+
+            var validationResult = await _validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.ToDictionary()); // Aborts early if invalid
+            }
+
+            // 2. Map the validated DTO safely into your real Database Entity
+                       
 
             // 2. Send message to RabbitMQ
             //var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -47,7 +64,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
 
             //channel.BasicPublish("", "store-queue", null, body);
 
-            await _service.AddTicketAsync(ticket);
+            await _service.AddTicketAsync(request);
             return Ok();
 
         }
