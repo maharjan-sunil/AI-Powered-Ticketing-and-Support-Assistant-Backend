@@ -1,8 +1,11 @@
 using AI_Powered_Ticketing_and_Support_System.Data;
+using AI_Powered_Ticketing_and_Support_System_Backend.Middleware;
 using DockerDemo.DependencyInjection;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.Win32;
 using Serilog;
 //using UserService.API.RabbitMQ;
 
@@ -15,6 +18,7 @@ Log.Logger  = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
 //adding authenication in system with azure active directory
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -65,8 +69,6 @@ builder.Services.AddControllers();
 //This registers authorization services in the dependency injection container.
 builder.Services.AddAuthorization();
 
-//to make git detect changes
-
 // swagger service 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -100,6 +102,20 @@ builder.Services.AddSwaggerGen(options =>
 
 // to add all the DI 
 builder.Services.AddApplicationServices();
+
+//HttpClient Service to call third party service
+builder.Services.AddHttpClient<TicketAiService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ExternalServices:AIExtensionBaseUrl"]);
+    /*
+     * if the ai extension also have authentication 
+     */
+    //client.DefaultRequestHeaders.Add("Authorization", "Bearer AI_API_KEY_HERE");
+    client.Timeout = TimeSpan.FromMinutes(5); // AI calls can take longer
+});
+
+// Automatically registers all validators found in the same assembly as Program
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 //Consumer for Rabbit MQ
 //builder.Services.AddHostedService<StoreConsumer>();
@@ -159,6 +175,9 @@ app.UseSwaggerUI(options =>
 //    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 //    db.Database.Migrate(); // creates tables if they don't exist
 //}
+
+// 4. ADD IT HERE! Runs your custom database find-or-create synchronization checks
+app.UseMiddleware<UserSyncMiddleware>();
 
 app.MapControllers();
 app.Run();

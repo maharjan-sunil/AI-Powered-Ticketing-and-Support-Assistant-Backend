@@ -9,7 +9,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.UserService.Model
     {
         public Guid Id { get; set; }
 
-        // Microsoft Entra ID
+        // Microsoft Entra ID these two are not used 
         public string TenantId { get; set; } = string.Empty;
         public string EntraObjectId { get; set; } = string.Empty;
 
@@ -17,6 +17,8 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.UserService.Model
         public string Email { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
+
+        //using as lastlogin 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Tickets created by this user

@@ -28,6 +28,10 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(t => t.CategoryId)
             .IsRequired(false);
 
+        modelBuilder.Entity<Ticket>()
+      .Property(t => t.TicketNumber)
+      .UseIdentityColumn(1001, 1);
+
 
         // Ticket -> User who created the ticket
         modelBuilder.Entity<Ticket>()

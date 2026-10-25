@@ -68,10 +68,6 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Servic
             if (categoryDetail is null)
                 return null;
 
-            categoryDetail.Name = category.Name;
-            categoryDetail.Description = category.Description;
-            categoryDetail.IsActive = category.IsActive;
-
             try
             {
                 await _context.SaveChangesAsync();

@@ -1,25 +1,32 @@
-﻿using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Interface;
+﻿using AI_Powered_Ticketing_and_Support_System.Feature.Categories.DTO;
+using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Interface;
 using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Model;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
+using Azure.Core;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 //using UserService.API.RabbitMQ;
 
 namespace DockerDemo.Docker.Controller
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
 
         private readonly ICategoryService _service;
-        public CategoryController(ICategoryService service)
+        private readonly IValidator<CreateCategoryRequest> _validator;
+
+        public CategoryController(ICategoryService service, IValidator<CreateCategoryRequest> validator)
         {
             _service = service;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -31,18 +38,50 @@ namespace DockerDemo.Docker.Controller
 
         [HttpPost]
         //[Authorize]
-        public async Task<IActionResult> AddCategory(Category category)
+        public async Task<IActionResult> AddCategory([FromBody] CreateCategoryRequest request)
         {
-            await _service.AddCategoryAsync(category);
+            var validationResult = await _validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.ToDictionary()); // Aborts early if invalid
+            }
+
+            // 2. Map the validated DTO safely into your real Database Entity
+            var categoryEntity = new Category
+            {
+                Name = request.Name.Trim(),
+                Description = request.Description.Trim(),
+                IsActive = true, // Force-set by backend logic, immune to user override
+               // Tickets = new List<Ticket>() // Safely initialized empty
+            };
+
+
+            await _service.AddCategoryAsync(categoryEntity);
             return NoContent();
 
         }
 
         [HttpPatch]
         //[Authorize]
-        public async Task<IActionResult> UpdateCategory(Category category)
+        public async Task<IActionResult> UpdateCategory(CreateCategoryRequest request)
         {
-            var updatedCategory = await _service.UpdateCategoryAsync(category);
+            var validationResult = await _validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.ToDictionary()); // Aborts early if invalid
+            }
+
+            // 2. Map the validated DTO safely into your real Database Entity
+            var categoryEntity = new Category
+            {
+                Name = request.Name.Trim(),
+                Description = request.Description.Trim(),
+                IsActive = request.IsActive
+            };
+
+            var updatedCategory = await _service.UpdateCategoryAsync(categoryEntity);
             if (updatedCategory == null)
             {
                 return NotFound();

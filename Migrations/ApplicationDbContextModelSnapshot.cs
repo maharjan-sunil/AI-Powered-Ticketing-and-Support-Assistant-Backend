@@ -79,7 +79,7 @@ namespace AI_Powered_Ticketing_and_Support_System__Backend.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("Comment");
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model.Ticket", b =>
@@ -114,7 +114,10 @@ namespace AI_Powered_Ticketing_and_Support_System__Backend.Migrations
                         .HasColumnType("tinyint");
 
                     b.Property<long>("TicketNumber")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("TicketNumber"), 1001L);
 
                     b.Property<string>("Title")
                         .IsRequired()
