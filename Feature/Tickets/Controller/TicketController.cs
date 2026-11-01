@@ -22,15 +22,15 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
     {
 
         private readonly ITicketService  _service;
-        private readonly IValidator<CreateTicketRequest> _validator;
+        private readonly IValidator<TicketCreateDto> _validator;
 
-        public TicketController(ITicketService service, IValidator<CreateTicketRequest> validator) { 
+        public TicketController(ITicketService service, IValidator<TicketCreateDto> validator) { 
             _validator = validator;
             _service = service;
         }
 
         [HttpGet]
-        public  async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
+        public  async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets()
         {
             var tickets = await _service.GetTicketsAsync();
             return Ok(tickets);
@@ -38,7 +38,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
        
         [HttpPost]
         //[Authorize]
-        public async Task<IActionResult> AddTicket([FromBody] CreateTicketRequest request)
+        public async Task<IActionResult> AddTicket([FromBody] TicketCreateDto request)
         {
 
             var validationResult = await _validator.ValidateAsync(request);
@@ -71,13 +71,13 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
 
         [HttpPatch]
        // [Authorize]
-        public async Task<IActionResult> UpdateStore(Ticket ticket)
+        public async Task<IActionResult> UpdateStore([FromBody] TicketUpdateDto request)
         {
-            if(ticket is null)
+            if(request is null)
                 return BadRequest("Ticket cannot be null.");
 
-            await _service.UpdateTicketAsync(ticket);
-            return Ok(ticket);
+            await _service.UpdateTicketAsync(request);
+            return Ok(request);
 
         }
 
@@ -100,7 +100,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
        
         [HttpGet("search")]
         //[Authorize]
-        public async Task<ActionResult<Ticket>> GetTicketById(Guid ticketId)
+        public async Task<ActionResult<TicketDto>> GetTicketById(Guid ticketId)
         {
             if (ticketId == Guid.Empty)
                 return BadRequest("Ticket ID cannot be empty.");

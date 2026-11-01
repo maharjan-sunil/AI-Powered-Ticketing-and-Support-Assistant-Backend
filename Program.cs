@@ -117,6 +117,18 @@ builder.Services.AddHttpClient<TicketAiService>(client =>
 // Automatically registers all validators found in the same assembly as Program
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+//allow to access for now open to all
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+
 //Consumer for Rabbit MQ
 //builder.Services.AddHostedService<StoreConsumer>();
 
@@ -142,6 +154,8 @@ app.UseSwaggerUI(options =>
    options.RoutePrefix = string.Empty;
 });
 //}
+
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())

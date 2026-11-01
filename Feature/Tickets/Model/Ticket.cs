@@ -21,7 +21,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model
         public Guid? AssignedToUserId { get; set; }
         public User? AssignedToUser { get; set; }
 
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
         public Category? Category { get; set; }
 
         public TicketStatus Status { get; set; } = TicketStatus.Open;
@@ -60,10 +60,10 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model
 
     public class TriageReport
     {
-        public int CategoryId { get; set; }
+        public TicketCategory Category { get; set; }
 
-        public int Priority { get; set; }
-        public int Sentiment { get; set; }
+        public int Urgency { get; set; }
+        public SentimentType Sentiment { get; set; }
     }
 
     public class TriageRequest
