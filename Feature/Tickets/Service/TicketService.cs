@@ -1,8 +1,10 @@
 ﻿using AI_Powered_Ticketing_and_Support_System.Data;
+using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Model;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
 using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Tickets.DTO;
 using AI_Powered_Ticketing_and_Support_System_Backend.Middleware;
+using Azure.Core;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +37,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             _currentUserService = currentUserService;
         }
 
-        public async Task AddTicketAsync(CreateTicketRequest request)
+        public async Task AddTicketAsync(TicketCreateDto request)
         {
 
             var requestDto = new TriageRequest
@@ -43,35 +45,32 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
                 ticketMessage = request.ticketMessage
             };
 
-            TriageReport? result = new TriageReport
-            {
-                CategoryId = 2,
-                Priority = 1
-            };
-            //TriageReport? result = await _ticketAiService.AnalyzeTicketAsync(requestDto);
+           
+            TriageReport? result = await GetTriageReport(requestDto);
 
             var ticketEntity = new Ticket
             {
                 Id = Guid.NewGuid(),
-
                 Description = request.ticketMessage.Trim(),
-
                 Status = TicketStatus.Open,
                 CreatedAt = DateTime.Now,
 
-                /* Pending task retrieve the logged in user detail 
-             */
+                /* Pending task retrieve the logged in user detail */
                 CreatedByUserId = _currentUserService.UserId,
-
-                //AssignedToUserId = Guid.NewGuid()
-                CategoryId = result.CategoryId,
-                Priority = (Priority)result.Priority,
+                CategoryId = (int)(TicketCategory)result.Category,
+                Priority = (Priority)result.Urgency,
             };
             //   string encyrpted = await _key.Encrypt(ticket.Location);
             //string decyrpted = await _key.Decrypt(encyrpted);
 
             _context.Tickets.Add(ticketEntity);
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<TriageReport> GetTriageReport(TriageRequest requestDto)
+        {
+            var result = await _ticketAiService.AnalyzeTicketAsync(requestDto);
+            return result;
         }
 
         public async Task<bool> DeleteTicketAsync(Guid id)
@@ -88,31 +87,50 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
 
         }
 
-        public async Task<IEnumerable<Ticket>> GetTicketsAsync()
+        public async Task<IEnumerable<TicketDto>> GetTicketsAsync()
         {
-            return await _context.Tickets.ToListAsync();
+            var databaseTickets = await _context.Tickets.ToListAsync();
+
+            var clientTickets = new List<TicketDto>();
+
+            foreach (var dbTicket in databaseTickets)
+            {
+                var dto = ConvertToDto(dbTicket);
+                clientTickets.Add(dto);
+            }
+            return clientTickets;
         }
 
-        public async Task<Ticket> GetTicketByIdAsync(Guid ticketId)
+        public async Task<TicketDto> GetTicketByIdAsync(Guid ticketId)
         {
 
-            return await _context.Tickets
+            var ticket = await _context.Tickets
             .Where(s => s.Id.Equals(ticketId))
             .FirstAsync();
+
+            var ticketDto = ConvertToDto(ticket);
+
+            return ticketDto;
         }
 
-        public async Task<Ticket?> UpdateTicketAsync(Ticket ticket)
+        public async Task<Ticket?> UpdateTicketAsync(TicketUpdateDto ticket)
         {
             var ticketDetail = await _context.Tickets
-                .FindAsync(ticket.Id);
+                .FindAsync(ticket.ticketId);
 
             if (ticketDetail is null)
                 return null;
 
-            ticketDetail.Title = ticket.Title;
-            ticketDetail.Description = ticket.Description;
-            ticketDetail.Priority = ticket.Priority;
-            ticketDetail.Status = ticket.Status;
+            var requestDto = new TriageRequest
+            {
+                ticketMessage = ticket.ticketMessage
+            };
+
+            //ticketDetail.Title = ticket.Title;
+            ticketDetail.Description = ticket.ticketMessage;
+            TriageReport? result = await GetTriageReport(requestDto);
+            ticketDetail.CategoryId = (int)(TicketCategory)result.Category;
+            ticketDetail.Priority = (Priority)result.Urgency;
 
             try
             {
@@ -123,6 +141,23 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             {
                 throw;
             }
+        }
+
+        public TicketDto ConvertToDto (Ticket dbTicket)
+        {
+            var dto = new TicketDto
+            {
+                Id = dbTicket.Id,
+                TicketNumber = dbTicket.TicketNumber,
+                Title = dbTicket.Title,
+                Description = dbTicket.Description,
+                CreatedAt = dbTicket.CreatedAt,
+                Priority = ((Priority)dbTicket.Priority).ToString(),
+                Status = ((TicketStatus)dbTicket.Status).ToString(),
+                Category = ((TicketCategory)dbTicket.CategoryId).ToString()
+            };
+
+            return dto;
         }
     }
 }
