@@ -37,12 +37,12 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             _currentUserService = currentUserService;
         }
 
-        public async Task AddTicketAsync(TicketCreateDto request)
+        public async Task<TicketDto> AddTicketAsync(TicketCreateDto request)
         {
 
             var requestDto = new TriageRequest
             {
-                ticketMessage = request.ticketMessage
+              ticketMessage = request.ticketMessage
             };
 
            
@@ -65,6 +65,9 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
 
             _context.Tickets.Add(ticketEntity);
             await _context.SaveChangesAsync();
+
+            var ticketDto = ConvertToDto(ticketEntity);
+            return ticketDto;
         }
 
         private async Task<TriageReport> GetTriageReport(TriageRequest requestDto)
@@ -98,7 +101,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
                 var dto = ConvertToDto(dbTicket);
                 clientTickets.Add(dto);
             }
-            return clientTickets;
+            return clientTickets.OrderByDescending(t=>t.CreatedAt);
         }
 
         public async Task<TicketDto> GetTicketByIdAsync(Guid ticketId)
