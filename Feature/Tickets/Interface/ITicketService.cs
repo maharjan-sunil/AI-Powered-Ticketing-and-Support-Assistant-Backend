@@ -6,7 +6,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interfac
     public interface ITicketService
     {
         public Task<IEnumerable<TicketDto>> GetTicketsAsync();
-        public Task AddTicketAsync(TicketCreateDto ticket);
+        public Task<TicketDto> AddTicketAsync(TicketCreateDto ticket);
         public Task<bool> DeleteTicketAsync(Guid id);
         public Task<TicketDto> GetTicketByIdAsync(Guid ticketId);
         public Task<Ticket?> UpdateTicketAsync(TicketUpdateDto ticket);

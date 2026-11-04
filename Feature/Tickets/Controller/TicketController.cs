@@ -64,8 +64,10 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
 
             //channel.BasicPublish("", "store-queue", null, body);
 
-            await _service.AddTicketAsync(request);
-            return Ok();
+            var newlyAddedResource = await _service.AddTicketAsync(request);
+
+            //return CreatedAtAction(nameof(GetTicketById), new { id = newlyAddedResource.Id }, newlyAddedResource);
+            return Ok(newlyAddedResource);
 
         }
 
