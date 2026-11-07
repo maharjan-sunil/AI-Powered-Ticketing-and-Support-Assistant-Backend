@@ -146,6 +146,27 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             }
         }
 
+        public async Task<bool> UpdateTicketStatusAsync(Guid ticketId, string ticketStatus)
+        {
+            var ticketDetail = await _context.Tickets
+                .FindAsync(ticketId);
+
+            if (ticketDetail is null)
+                return false;
+
+           ticketDetail.Status = (TicketStatus)Enum.Parse(typeof(TicketStatus), ticketStatus);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+        }
+
         public TicketDto ConvertToDto (Ticket dbTicket)
         {
             var dto = new TicketDto

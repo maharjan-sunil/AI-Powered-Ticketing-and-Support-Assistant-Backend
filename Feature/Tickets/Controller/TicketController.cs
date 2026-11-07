@@ -73,7 +73,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
 
         [HttpPatch]
        // [Authorize]
-        public async Task<IActionResult> UpdateStore([FromBody] TicketUpdateDto request)
+        public async Task<IActionResult> UpdateTicket([FromBody] TicketUpdateDto request)
         {
             if(request is null)
                 return BadRequest("Ticket cannot be null.");
@@ -82,6 +82,19 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
             return Ok(request);
 
         }
+
+        [HttpPatch("status")]
+        // [Authorize]
+        public async Task<IActionResult> UpdateTicketStatus(Guid ticketId, string ticketStatus)
+        {
+            if (ticketId == Guid.Empty)
+                return BadRequest("Ticket ID cannot be empty.");
+
+            await _service.UpdateTicketStatusAsync(ticketId, ticketStatus);
+            return Ok();
+
+        }
+
 
         [HttpDelete("{ticketId:guid}")]
         //[Authorize(Roles = "ADMIN")]

@@ -10,5 +10,6 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interfac
         public Task<bool> DeleteTicketAsync(Guid id);
         public Task<TicketDto> GetTicketByIdAsync(Guid ticketId);
         public Task<Ticket?> UpdateTicketAsync(TicketUpdateDto ticket);
+        public Task<bool> UpdateTicketStatusAsync(Guid ticket, string ticketStatus);
     }
 }
