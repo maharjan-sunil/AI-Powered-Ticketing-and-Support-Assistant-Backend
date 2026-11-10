@@ -1,4 +1,7 @@
 using AI_Powered_Ticketing_and_Support_System.Data;
+using AI_Powered_Ticketing_and_Support_System_Backend.Infrastructure.Kafka;
+using AI_Powered_Ticketing_and_Support_System_Backend.Infrastructure.Kafka.Consumers;
+using AI_Powered_Ticketing_and_Support_System_Backend.Infrastructure.Kafka.Producers;
 using AI_Powered_Ticketing_and_Support_System_Backend.Middleware;
 using DockerDemo.DependencyInjection;
 using FluentValidation;
@@ -128,6 +131,16 @@ builder.Services.AddCors(options =>
     });
 });
 
+//Kafka Producer for Ticket Created Event
+builder.Services.Configure<KafkaSettings>(
+    builder.Configuration.GetSection("Kafka"));
+
+builder.Services.AddSingleton<
+    ITicketCreatedProducer,
+    TicketCreatedProducer>();
+
+builder.Services.AddHostedService<TicketTriageConsumer>();
+builder.Services.AddScoped<ITicketTriageResultHandler, TicketTriageResultHandler>();
 
 //Consumer for Rabbit MQ
 //builder.Services.AddHostedService<StoreConsumer>();
