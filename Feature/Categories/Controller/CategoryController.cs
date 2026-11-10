@@ -14,7 +14,7 @@ using System.Text.Json;
 
 namespace DockerDemo.Docker.Controller
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase
