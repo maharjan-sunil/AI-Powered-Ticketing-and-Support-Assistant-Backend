@@ -2,7 +2,9 @@
 using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Model;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
+using AI_Powered_Ticketing_and_Support_System_Backend.Events;
 using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Tickets.DTO;
+using AI_Powered_Ticketing_and_Support_System_Backend.Infrastructure.Kafka.Producers;
 using AI_Powered_Ticketing_and_Support_System_Backend.Middleware;
 using Azure.Core;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -24,10 +26,13 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
         private readonly TicketAiService _ticketAiService;
         //  private readonly AzureKey _key;
 
+        private readonly ITicketCreatedProducer _producer;
+
         public TicketService(ApplicationDbContext context,
             ILogger<TicketService> logger,
             TicketAiService ticketAiService,
-            ICurrentUserService currentUserService
+            ICurrentUserService currentUserService,
+            ITicketCreatedProducer producer
             )
         {
             _context = context;
@@ -35,18 +40,19 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             _logger = logger;
             _ticketAiService = ticketAiService;
             _currentUserService = currentUserService;
+            _producer = producer;
         }
 
         public async Task<TicketDto> AddTicketAsync(TicketCreateDto request)
         {
 
-            var requestDto = new TriageRequest
-            {
-              ticketMessage = request.ticketMessage
-            };
+            //var requestDto = new TriageRequest
+            //{
+            //  ticketMessage = request.ticketMessage
+            //};
 
            
-            TriageReport? result = await GetTriageReport(requestDto);
+       //     TriageReport? result = await GetTriageReport(requestDto);
 
             var ticketEntity = new Ticket
             {
@@ -57,8 +63,8 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
 
                 /* Pending task retrieve the logged in user detail */
                 CreatedByUserId = _currentUserService.UserId,
-                CategoryId = (int)(TicketCategory)result.Category,
-                Priority = (Priority)result.Urgency,
+                CategoryId = 7,
+                Priority = Priority.NotClassified
             };
             //   string encyrpted = await _key.Encrypt(ticket.Location);
             //string decyrpted = await _key.Decrypt(encyrpted);
@@ -66,8 +72,21 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             _context.Tickets.Add(ticketEntity);
             await _context.SaveChangesAsync();
 
+            await publishTicketCreatedEvent(ticketEntity);
+
             var ticketDto = ConvertToDto(ticketEntity);
             return ticketDto;
+        }
+
+        private async Task publishTicketCreatedEvent(Ticket ticketEntity)
+        {
+            var ticketEvent = new TicketCreatedEvent
+            {
+                TicketId = ticketEntity.Id,
+                Description = ticketEntity.Description
+            };
+
+            await _producer.PublishAsync(ticketEvent);
         }
 
         private async Task<TriageReport> GetTriageReport(TriageRequest requestDto)
@@ -131,13 +150,18 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
 
             //ticketDetail.Title = ticket.Title;
             ticketDetail.Description = ticket.ticketMessage;
-            TriageReport? result = await GetTriageReport(requestDto);
-            ticketDetail.CategoryId = (int)(TicketCategory)result.Category;
-            ticketDetail.Priority = (Priority)result.Urgency;
+            ticketDetail.CategoryId = 7;
+            ticketDetail.Priority = Priority.NotClassified;
+
+
+            //TriageReport? result = await GetTriageReport(requestDto);
+            //ticketDetail.CategoryId = (int)(TicketCategory)result.Category;
+            //ticketDetail.Priority = (Priority)result.Urgency;
 
             try
             {
                 await _context.SaveChangesAsync();
+                await publishTicketCreatedEvent(ticketDetail);
                 return ticketDetail;
             }
             catch (DbUpdateConcurrencyException)
@@ -183,5 +207,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
 
             return dto;
         }
+
+
     }
 }

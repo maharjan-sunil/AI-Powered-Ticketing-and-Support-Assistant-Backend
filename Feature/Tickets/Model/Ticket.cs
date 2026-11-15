@@ -52,10 +52,11 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model
         Low = 0,
         Medium = 1,
         High = 2,
-        Critical = 3
+        Critical = 3,
+        NotClassified = 4
     }
 
-    public enum TicketCategory { AccountAccess = 0, Technical = 1, Billing = 2, Network = 3 }
+    public enum TicketCategory { AccountAccess = 0, Technical = 1, Billing = 2, Network = 3, NotClassified = 7 }
     public enum SentimentType { Positive = 0, Neutral = 1, Negative = 2, Angry = 3, Frustrated = 4 }
 
     public class TriageReport
