@@ -1,4 +1,5 @@
 ﻿using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
+using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Base.Model;
 using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Tickets.DTO;
 
 namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface
@@ -6,6 +7,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interfac
     public interface ITicketService
     {
         public Task<IEnumerable<TicketDto>> GetTicketsAsync();
+        public Task<PagedResult<TicketDto>> GetTicketsAsync(PaginationParams pagination, CancellationToken ct);
         public Task<TicketDto> AddTicketAsync(TicketCreateDto ticket);
         public Task<bool> DeleteTicketAsync(Guid id);
         public Task<TicketDto> GetTicketByIdAsync(Guid ticketId);

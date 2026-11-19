@@ -3,6 +3,7 @@ using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
 using AI_Powered_Ticketing_and_Support_System.Feature.UserService.Model;
 using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Base;
+using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Base.Model;
 using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Tickets.DTO;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +16,7 @@ using System.Text.Json;
 
 namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controller
 {
-   //[Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TicketController : ApiBaseController
@@ -24,18 +25,28 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
         private readonly ITicketService  _service;
         private readonly IValidator<TicketCreateDto> _validator;
 
-        public TicketController(ITicketService service, IValidator<TicketCreateDto> validator) { 
+        public TicketController(ITicketService service, IValidator<TicketCreateDto> validator)
+        {
             _validator = validator;
             _service = service;
         }
 
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets()
+        //{
+        //    var tickets = await _service.GetTicketsAsync();
+        //    return Ok(tickets);
+        //}
+
         [HttpGet]
-        public  async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets()
+        public async Task<ActionResult<PagedResult<TicketDto>>> GetTicket(
+                                                                [FromQuery] PaginationParams pagination,
+                                                                CancellationToken ct)
         {
-            var tickets = await _service.GetTicketsAsync();
-            return Ok(tickets);
+            var result = await _service.GetTicketsAsync(pagination, ct);
+            return Ok(result);
         }
-       
+
         [HttpPost]
         //[Authorize]
         public async Task<IActionResult> AddTicket([FromBody] TicketCreateDto request)
@@ -49,7 +60,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
             }
 
             // 2. Map the validated DTO safely into your real Database Entity
-                       
+
 
             // 2. Send message to RabbitMQ
             //var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -72,7 +83,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
         }
 
         [HttpPatch]
-       // [Authorize]
+        // [Authorize]
         public async Task<IActionResult> UpdateTicket([FromBody] TicketUpdateDto request)
         {
             if(request is null)
@@ -112,7 +123,7 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Controll
 
         }
 
-       
+
         [HttpGet("search")]
         //[Authorize]
         public async Task<ActionResult<TicketDto>> GetTicketById(Guid ticketId)
