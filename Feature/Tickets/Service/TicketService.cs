@@ -2,13 +2,17 @@
 using AI_Powered_Ticketing_and_Support_System.Feature.CategoryService.Model;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Interface;
 using AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Model;
+using AI_Powered_Ticketing_and_Support_System.Feature.UserService.Model;
 using AI_Powered_Ticketing_and_Support_System_Backend.Events;
+using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Base;
+using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Base.Model;
 using AI_Powered_Ticketing_and_Support_System_Backend.Feature.Tickets.DTO;
 using AI_Powered_Ticketing_and_Support_System_Backend.Infrastructure.Kafka.Producers;
 using AI_Powered_Ticketing_and_Support_System_Backend.Middleware;
 using Azure.Core;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -208,6 +212,18 @@ namespace AI_Powered_Ticketing_and_Support_System.Feature.TicketService.Service
             return dto;
         }
 
+        public async Task<PagedResult<TicketDto>> GetTicketsAsync(PaginationParams pagination, CancellationToken ct)
+        {
+            var result = await _context.Tickets
+                               .AsNoTracking() // Faster & uses less memory for read - only queries
+                               .OrderByDescending(t=>t.CreatedAt)
+                               .ToPagedResultAsync(pagination, ct);
 
+            var clientTickets = new List<TicketDto>();
+            clientTickets = result.Items.Select(t=> ConvertToDto(t)).ToList();
+
+            return new PagedResult<TicketDto>(clientTickets, result.Page, result.PageSize, result.TotalCount);
+
+        }
     }
 }
